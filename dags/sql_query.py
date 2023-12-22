@@ -1,3 +1,30 @@
+from airflow import DAG
+from airflow.operators.postgres_operator import PostgresOperator
+from datetime import datetime, timedelta
+
+# Параметры подключения к базе данных PostgreSQL
+DB_CONNECTION = {
+    'host': 'db',
+    'port': '5432',
+    'database': 'rssnews',
+    'user': 'postgres',
+    'password': 'postgres'
+}
+
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime.utcnow(),
+    'retries': 1,
+}
+
+dag = DAG(
+    'example_sql_dag',
+    default_args=default_args,
+    schedule_interval='@daily',
+)
+
+# SQL-запрос, который вы хотите выполнить
+sql_query = """
 CREATE OR REPLACE VIEW rss_news_analis AS
 WITH NewsCounts AS (
   SELECT
@@ -51,3 +78,13 @@ GROUP BY
   cg.id_category_groupe, cg.category_groupe, s.site_name, nc.publication_date
 ORDER BY
   surrogate_key, site_name;
+"""
+
+# Оператор PostgresOperator для выполнения SQL-запроса
+execute_sql = PostgresOperator(
+    task_id='execute_sql',
+    sql=sql_query,
+    postgres_conn_id='sql_query',  # Идентификатор подключения к PostgreSQL в Airflow
+    autocommit=True,  # Автозавершение транзакции
+    dag=dag,
+)
