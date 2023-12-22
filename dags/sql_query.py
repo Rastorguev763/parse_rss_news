@@ -24,8 +24,8 @@ dag = DAG(
 )
 
 # SQL-запрос, который вы хотите выполнить
-sql_query = """
-CREATE OR REPLACE VIEW rss_news_analis AS
+sql_query_rss_news_analisis = """
+CREATE OR REPLACE VIEW rss_news_analisis AS
 WITH NewsCounts AS (
   SELECT
     cg.id_category_groupe,
@@ -80,10 +80,50 @@ ORDER BY
   surrogate_key, site_name;
 """
 
+sql_query_day_of_week = """
+CREATE OR REPLACE VIEW day_of_week AS
+SELECT
+  cg.id_category_groupe,
+  cg.category_groupe,
+  s.site_name,
+  CASE EXTRACT(DOW FROM n.published)
+    WHEN 0 THEN 'Воскресенье'
+    WHEN 1 THEN 'Понедельник'
+    WHEN 2 THEN 'Вторник'
+    WHEN 3 THEN 'Среда'
+    WHEN 4 THEN 'Четверг'
+    WHEN 5 THEN 'Пятница'
+    WHEN 6 THEN 'Суббота'
+    ELSE 'Неизвестно'
+  END AS day_of_week,
+  COUNT(*) AS publication_count
+FROM
+  news n
+JOIN
+  data_news dn ON n.id_news_data = dn.id_news_data
+JOIN
+  category c ON dn.id_category = c.id_category
+JOIN
+  category_groupe cg ON c.id_category_groupe = cg.id_category_groupe
+JOIN
+  site s ON dn.id_site = s.id_site
+GROUP BY
+  cg.id_category_groupe, cg.category_groupe, s.site_name, day_of_week
+ORDER BY
+  cg.id_category_groupe, s.site_name, MIN(EXTRACT(DOW FROM n.published));
+"""
+
 # Оператор PostgresOperator для выполнения SQL-запроса
 execute_sql = PostgresOperator(
-    task_id='execute_sql',
-    sql=sql_query,
+    task_id='execute_sql_rss_news_analisis',
+    sql=sql_query_rss_news_analisis,
+    postgres_conn_id='sql_query',  # Идентификатор подключения к PostgreSQL в Airflow
+    autocommit=True,  # Автозавершение транзакции
+    dag=dag,
+)
+execute_sql = PostgresOperator(
+    task_id='execute_sql_day_of_week',
+    sql=sql_query_day_of_week,
     postgres_conn_id='sql_query',  # Идентификатор подключения к PostgreSQL в Airflow
     autocommit=True,  # Автозавершение транзакции
     dag=dag,
