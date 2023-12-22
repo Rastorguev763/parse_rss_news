@@ -1,0 +1,72 @@
+@startuml
+!define ENTITY_TABLE class
+
+package "Database" {
+  ENTITY_TABLE rss_data {
+    + id_rss_data: SERIAL
+    title: VARCHAR(255)
+    link: VARCHAR(255)
+    description: TEXT
+    published: TIMESTAMP
+    category: VARCHAR(255)
+    author: VARCHAR(255)
+    site_name: VARCHAR(255)
+    source: VARCHAR(255)
+  }
+
+  ENTITY_TABLE category_groupe {
+    + id_category_groupe: SERIAL
+    category_groupe: VARCHAR(50)
+  }
+
+  ENTITY_TABLE subcategory {
+    + id_category_groupe: INT
+    subcategory: VARCHAR(50)
+  }
+}
+
+package "Database_2" {
+  ENTITY_TABLE category {
+    + id_category: SERIAL
+    id_category_groupe: INT
+    category: VARCHAR(255)
+  }
+
+  ENTITY_TABLE site {
+    + id_site: SERIAL
+    site_name: VARCHAR(255)
+    source: VARCHAR(255)
+  }
+
+  ENTITY_TABLE author {
+    + id_author: SERIAL
+    author: VARCHAR(255)
+  }
+
+  ENTITY_TABLE news {
+    + id_news_data: SERIAL
+    title: VARCHAR(255)
+    link: VARCHAR(255)
+    description: TEXT
+    published: TIMESTAMP
+  }
+
+  ENTITY_TABLE data_news {
+    + id: SERIAL
+    id_news_data: INT
+    id_category: INT
+    id_site: INT
+    id_author: INT
+  }
+}
+
+  category_groupe --{ subcategory: id_category_groupe
+
+  category --{ data_news: id_category
+  site --{ data_news: id_site
+  author --{ data_news: id_author
+  news --{ data_news: id_news_data
+
+
+
+@enduml
