@@ -1,0 +1,12 @@
+{
+  "sql_query": {
+    "conn_type": "postgres",
+    "description": "",
+    "login": "postgres",
+    "password": "postgres",
+    "host": "db",
+    "port": 5432,
+    "schema": "rssnews",
+    "extra": "{}"
+  }
+}
